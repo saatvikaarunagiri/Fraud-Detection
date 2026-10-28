@@ -1,0 +1,41 @@
+# Deployable app services, separate from the infra in docker-compose.yml.
+#
+# Fraud-scoring API:
+#   docker compose -f docker-compose.apps.yml --profile fraud-api up -d --build
+#   # → http://localhost:8000/healthz  and  /docs
+#
+# Streaming worker (needs infra up first: `make up-fraud`):
+#   docker compose -f docker-compose.yml -f docker-compose.apps.yml --profile stream up -d --build
+
+name: fraud-detection
+
+services:
+  fraud-api:
+    build:
+      context: .
+      args:
+        REQS: requirements-ci.txt     # light: numpy + xgboost + fastapi
+    profiles: ["fraud-api"]
+    command: >
+      sh -c "python -m p2_fraud.data.generate --n 20000 &&
+             python -m p2_fraud.fraud.train &&
+             uvicorn p2_fraud.serve.app:app --host 0.0.0.0 --port 8000"
+    environment:
+      USE_LOCAL_LLM: "true"
+    ports:
+      - "8000:8000"
+
+  fraud-stream:
+    build:
+      context: .
+      args:
+        REQS: p2_fraud/requirements.txt
+    profiles: ["stream"]
+    command: >
+      sh -c "python -m p2_fraud.data.generate --n 100000 &&
+             python -m p2_fraud.fraud.train &&
+             python -m p2_fraud.stream.pipeline --source replay --sink redis --limit 100000"
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      KAFKA_BROKERS: redpanda:9092
+    depends_on: [redis]

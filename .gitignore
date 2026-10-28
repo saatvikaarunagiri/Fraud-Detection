@@ -1,0 +1,17 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+# generated data + artifacts (regenerate with the demo)
+**/data/*.jsonl
+**/artifacts/
+p2_fraud/fraud/artifacts/
+p2_fraud/investigator/cases.jsonl
+# tooling
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+# packaging
+*.zip
+# os
+.DS_Store

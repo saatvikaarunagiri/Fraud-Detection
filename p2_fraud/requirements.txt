@@ -1,0 +1,21 @@
+# Project 2 — Fraud + Personalization
+# Install from repo root:  .venv/bin/pip install -r p2_fraud/requirements.txt
+
+numpy>=1.26
+pandas>=2.2
+scikit-learn>=1.5
+xgboost>=2.1                 # fraud model (has arm64 wheels)
+confluent-kafka>=2.5
+redis>=5.0                   # feature store cache
+bytewax>=0.21                # pure-python stream processing (Flink stand-in)
+river>=0.21                  # online metrics / drift helpers
+rich>=13.7
+tqdm>=4.66
+
+# --- agentic fraud investigator ---
+anthropic>=0.39              # Claude API (optional; local fallback via ollama)
+mcp>=1.2                     # Model Context Protocol server/client
+fastmcp>=2.0                 # ergonomic MCP server wrapper
+
+# --- optional: SHAP explanations for flagged transactions ---
+shap>=0.46

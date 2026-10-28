@@ -1,0 +1,38 @@
+name: Deploy Fraud API (Fly.io)
+
+# Deploys the fraud-scoring API to Fly.io, but ONLY after CI succeeds on main.
+# This uses `workflow_run` so a red build never ships. You can also trigger it
+# by hand from the Actions tab (workflow_dispatch).
+#
+# Prerequisites (one-time):
+#   1. A Fly app:        fly apps create <your-app-name>   (match `app` in fly.toml)
+#   2. A deploy token:   fly tokens create deploy -x 999999h
+#   3. Add it to GitHub: repo Settings → Secrets and variables → Actions →
+#                        New repository secret → name: FLY_API_TOKEN
+
+on:
+  workflow_run:
+    workflows: ["CI"]           # the name: of ci.yml
+    types: [completed]
+    branches: [main]
+  workflow_dispatch: {}
+
+# Never run two deploys at once; cancel an in-flight one if a newer push lands.
+concurrency:
+  group: deploy-fly
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    # On workflow_run, only deploy if CI passed. On manual dispatch, always run.
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - name: Deploy
+        run: flyctl deploy --remote-only
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}

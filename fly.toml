@@ -1,0 +1,44 @@
+# Fly.io deploy config for the Fraud Scoring API (Project 2).
+#
+# Runs as ONE self-contained machine on Fly's free, scale-to-zero tier:
+#   * light image (numpy + xgboost + fastapi — no torch)
+#   * generates data + trains the model at boot (~10s), then serves
+#   * sleeps when idle (min_machines_running = 0), wakes on the next request
+#
+# First deploy:
+#   fly launch --no-deploy        # or: fly apps create <your-app-name>
+#   # edit `app` below to match your app name
+#   fly deploy
+#
+# After that, the GitHub Action (.github/workflows/deploy.yml) deploys on push.
+
+app = "fraud-detection-api"      # <-- change to your unique app name
+primary_region = "iad"            # pick one near you: fly platform regions
+
+[build]
+  dockerfile = "Dockerfile"       # root image; default REQS=requirements-ci.txt (light)
+
+[env]
+  USE_LOCAL_LLM = "true"          # investigator uses the local ReAct fallback (no API key)
+
+# Build a small dataset + train the model at boot, then serve. (Ephemeral FS is
+# fine — it rebuilds on restart in ~10s.)
+[processes]
+  app = "sh -c 'python -m p2_fraud.data.generate --n 20000 && python -m p2_fraud.fraud.train && uvicorn p2_fraud.serve.app:app --host 0.0.0.0 --port 8000'"
+
+[http_service]
+  internal_port = 8000
+  force_https = true
+  auto_stop_machines = true       # scale to zero when idle -> $0
+  auto_start_machines = true      # wake on incoming request
+  min_machines_running = 0
+
+  [[http_service.checks]]
+    path = "/healthz"
+    interval = "15s"
+    timeout = "3s"
+    grace_period = "40s"          # allow time for data-gen + training at boot
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"                # enough for xgboost + the light stack

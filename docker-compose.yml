@@ -1,0 +1,59 @@
+# =============================================================================
+# Fraud infra. Behind PROFILES so you only start what you need.
+#
+#   docker compose --profile fraud up -d     # redpanda + redis
+#   docker compose --profile dash up -d      # grafana
+#   docker compose down                      # stop (keeps data)
+#   docker compose down -v                   # stop + delete volumes
+# =============================================================================
+name: fraud-detection
+
+services:
+  # Redpanda — Kafka-API-compatible broker, ~350MB vs Kafka's ~2GB.
+  redpanda:
+    image: redpandadata/redpanda:v24.2.7
+    profiles: ["fraud"]
+    command:
+      - redpanda
+      - start
+      - --smp=1
+      - --memory=512M
+      - --reserve-memory=0M
+      - --overprovisioned
+      - --node-id=0
+      - --check=false
+      - --kafka-addr=PLAINTEXT://0.0.0.0:9092
+      - --advertise-kafka-addr=PLAINTEXT://localhost:9092
+    ports: ["9092:9092", "9644:9644"]
+    volumes: ["redpanda-data:/var/lib/redpanda/data"]
+
+  redpanda-console:
+    image: redpandadata/console:v2.7.2
+    profiles: ["fraud"]
+    depends_on: [redpanda]
+    ports: ["8080:8080"]
+    environment:
+      KAFKA_BROKERS: redpanda:9092
+
+  # Redis — the online feature store the stream writes to.
+  redis:
+    image: redis:7.4-alpine
+    profiles: ["fraud"]
+    command: ["redis-server", "--maxmemory", "256mb", "--maxmemory-policy", "allkeys-lru"]
+    ports: ["6379:6379"]
+    volumes: ["redis-data:/data"]
+
+  grafana:
+    image: grafana/grafana-oss:11.2.0
+    profiles: ["dash"]
+    ports: ["3001:3000"]
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+    volumes: ["grafana-data:/var/lib/grafana"]
+
+volumes:
+  redpanda-data:
+  redis-data:
+  grafana-data:
