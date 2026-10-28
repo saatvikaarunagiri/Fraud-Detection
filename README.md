@@ -53,8 +53,6 @@ transactions ─> 28 features ──┬─> XGBoost fraud model ─> agent / API
 | Put the API online (free) | [DEPLOY.md](DEPLOY.md) → Fly.io in 5 min |
 | Something broke? | [SETUP.md](SETUP.md) — a fix for every step |
 
-📖 **Want the deep dive** (the features, the models, every metric)? → **[p2_fraud/README.md](p2_fraud/README.md)**
-
 ---
 
 ## Good to know
