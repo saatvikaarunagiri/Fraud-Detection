@@ -1,4 +1,4 @@
-# 💳 Real-Time Fraud Detection + Personalization
+# Real Time Fraud Detection + Personalization
 
 One feature pipeline, **two models**: an XGBoost fraud detector and a live recommender — plus a Claude agent that investigates flagged charges and a REST API to serve it all. Runs on your laptop in one command. No GPU, no API keys, no cloud bill.
 
@@ -12,37 +12,35 @@ One feature pipeline, **two models**: an XGBoost fraud detector and a live recom
 
 ---
 
-## ⚡ Try it (30 seconds)
+## Try it
 
 ```bash
-make venv && source .venv/bin/activate   # 1. set up
-pip install -r requirements-ci.txt        # 2. install (light, no torch)
-make p2-demo                              # 3. watch it all run 🎬
+make venv && source .venv/bin/activate   
+pip install -r requirements-ci.txt        
+make p2-demo                            
 ```
 
-Generates transactions, trains the fraud model, streams features, runs the recommender, and grades the agent — start to finish in under a minute, printing every score.
+Generates transactions, trains the fraud model, streams features, runs the recommender, and grades the agent - start to finish in under a minute, printing every score.
 
 ---
 
-## 🤔 What it does
+## What it does
 
 Every card swipe becomes **28 features** in under a millisecond. Those same features feed two things at once:
 
-- 🚨 **Fraud detector** (XGBoost) — flags suspicious charges.
-- 🎁 **Recommender** (LinUCB bandit) — picks what to show next, learning live from clicks, with drift detection that triggers a retrain.
+- **Fraud detector** (XGBoost) — flags suspicious charges.
+- **Recommender** (LinUCB bandit) — picks what to show next, learning live from clicks, with drift detection that triggers a retrain.
 
-Flagged charges go to a 🕵️ **Claude agent** that investigates step-by-step (score → explain → check history → decide), usable from Claude Desktop via an **MCP server** or as a **REST API**.
+Flagged charges go to a **Claude agent** that investigates step-by-step (score → explain → check history → decide), usable from Claude Desktop via an **MCP server** or as a **REST API**.
 
 ```
-transactions ──▶ 28 features ──┬──▶ XGBoost fraud model ──▶ 🕵️ agent / API
-                               └──▶ LinUCB recommender  ──▶ clicks (+ drift alarm)
+transactions ─> 28 features ──┬─> XGBoost fraud model ─> agent / API
+                               └─> LinUCB recommender  ─>clicks (+ drift alarm)
 ```
-
-> 🎯 **0.99 AUC** fraud model &nbsp;·&nbsp; ⚡ **sub-millisecond** features &nbsp;·&nbsp; 📈 **+30% click-through** vs baseline
 
 ---
 
-## 🛠 Use it like a tool
+## Use it like a tool
 
 | I want to… | Run this |
 |---|---|
@@ -59,10 +57,10 @@ transactions ──▶ 28 features ──┬──▶ XGBoost fraud model ──
 
 ---
 
-## 🧩 Good to know
+## Good to know
 
-- **🆓 Free by default** — XGBoost + local tools. Add an API key only for a hosted LLM in the investigator.
-- **🪆 Nothing is required** — no Bytewax? no Docker? no internet? It falls back to a lighter path and still runs.
-- **🧪 Numbers are real but synthetic** — the demo *measures* its scores on generated transactions (so AUC looks high). Point it at real data (the guide shows where) for your real numbers.
+- ** Free by default** — XGBoost + local tools. Add an API key only for a hosted LLM in the investigator.
+- ** Nothing is required** — no Bytewax? no Docker? no internet? It falls back to a lighter path and still runs.
+- ** Numbers are real but synthetic** — the demo *measures* its scores on generated transactions (so AUC looks high). Point it at real data (the guide shows where) for your real numbers.
 
-<sub>Built to run on an M-series MacBook · MIT licensed · `make help` for the full menu</sub>
+<sub> MIT licensed · `make help` for the full menu</sub>
